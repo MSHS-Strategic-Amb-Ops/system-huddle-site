@@ -624,7 +624,10 @@ vol_past_month <- scheduling_data %>%
     values_to = "weekly_vol"
   ) %>%
   mutate(Appt.WeekNum = as.numeric(Appt.WeekNum))
+
+rm(scheduling_data)
 invisible(gc())
+
 
 ```
 
@@ -936,17 +939,18 @@ invisible(gc())
 
 ### 3. MSHS Time to Appointment
 ```{r MSHS Time to Appointment Metrics by Site, echo = FALSE, warning = FALSE, message = FALSE}
-time_to_appt_all <- scheduling_data %>%
-  filter(Campus != "MSBI") %>%
-  filter(Appt.Made.DateYear >= date_start, Appt.Made.DateYear <= date_end) %>%
-  # filter(New.PT2 == "New") %>%
-  # mutate(Appt.Made.Year = format(as.Date(Appt.Made.DTTM, format="%m/%d/%Y"), "%Y"),
-  #        Appt.Made.MonthYear = as.Date(paste0(format(as.Date(Appt.Made.DTTM, format="%m/%d/%Y"), "%Y-%m"), "-01"))) %>%
-  # filter(Appt.Made.Year >= 2021) %>%
-  filter(Campus.Specialty %in% c("Internal Medicine", "Family Medicine")) %>%
-  filter(Wait.Time >= 0) %>%
-  mutate(Wait.Time = as.numeric(Wait.Time))
+# time_to_appt_all <- scheduling_data %>%
+#   filter(Campus != "MSBI") %>%
+#   filter(Appt.Made.DateYear >= date_start, Appt.Made.DateYear <= date_end) %>%
+#   # filter(New.PT2 == "New") %>%
+#   # mutate(Appt.Made.Year = format(as.Date(Appt.Made.DTTM, format="%m/%d/%Y"), "%Y"),
+#   #        Appt.Made.MonthYear = as.Date(paste0(format(as.Date(Appt.Made.DTTM, format="%m/%d/%Y"), "%Y-%m"), "-01"))) %>%
+#   # filter(Appt.Made.Year >= 2021) %>%
+#   filter(Campus.Specialty %in% c("Internal Medicine", "Family Medicine")) %>%
+#   filter(Wait.Time >= 0) %>%
+#   mutate(Wait.Time = as.numeric(Wait.Time))
 
+time_to_appt_all <- as.data.frame(readRDS("/nfs/data/Applications/Ambulatory/Data_Updated/time_to_appt_all.rds"))
 
 # Time to Appointment by Visit Method and Patient Type ---------------------------------------------
 current_last_wait_mshs_all_all <- time_to_appt_all %>%
@@ -2625,12 +2629,13 @@ hh_site_final %>%
 
 
 ```{r Site Metrics Output, echo = FALSE, warning = FALSE, message = FALSE, results="asis"}
-sites <- as.vector(unique(scheduling_data$Campus))
+# sites <- as.vector(unique(scheduling_data$Campus))
+sites <- as.vector(c("NETWORK","MSM","MSH-MSDFP","ONCOLOGY","MSW","MSBI","MSUS","MSH- AMBULATORY CARE","MSDD"))
 # missing_chg_sites <- as.vector(unique(missing_chg_data$Campus))
 primary_care_sites <- as.vector(unique((time_to_appt_all %>% filter(Appt.Year == todays_year))$Campus))
 # primary_care_depts <- as.vector(unique((time_to_appt_all %>% filter(Appt.WeekNum == todays_week))$Campus))
 hh_sites <- as.vector(hh_sites)
-rm(scheduling_data)
+# rm(scheduling_data)
 invisible(gc())
 # i <- "MSUS"
 for (i in sites) {
