@@ -727,17 +727,19 @@ missing_exc_visitType <- read_excel("/nfs/data/Applications/Ambulatory/open_enco
 ## MSHS
 ### 1. MSHS Open Encounters
 ```{r MSHS Unlocked Notes Metrics, echo = FALSE, warning = FALSE, message = FALSE}
-missing_ytd_data <- scheduling_data %>%
-  filter(Appt.Status == "Arrived") %>%
-  filter(Appt.Year == todays_year) %>%
-  filter(Department %!in% unique(missing_exc_dept$DEPARTMENT)) %>%
-  filter(Provider %!in% unique(missing_exc_resource$PROVIDER)) %>%
-  filter(Appt.DateYear <= missing_chg_cutOff) %>%
-  filter(Resource == "Provider") %>%
-  mutate(visit_exclude = case_when(str_detect(Appt.Type, "ECHO|SOCIAL|NURSE|NUTRITION|LAB|TREATMENT") ~ "YES"
-                                         ,TRUE ~ "NO")) %>%
-  filter(visit_exclude == "NO")
+# missing_ytd_data <- scheduling_data %>%
+#   filter(Appt.Status == "Arrived") %>%
+#   filter(Appt.Year == todays_year) %>%
+#   filter(Department %!in% unique(missing_exc_dept$DEPARTMENT)) %>%
+#   filter(Provider %!in% unique(missing_exc_resource$PROVIDER)) %>%
+#   filter(Appt.DateYear <= missing_chg_cutOff) %>%
+#   filter(Resource == "Provider") %>%
+#   mutate(visit_exclude = case_when(str_detect(Appt.Type, "ECHO|SOCIAL|NURSE|NUTRITION|LAB|TREATMENT") ~ "YES"
+#                                          ,TRUE ~ "NO")) %>%
+#   filter(visit_exclude == "NO")
   
+missing_ytd_data <- as.data.frame(readRDS("/nfs/data/Applications/Ambulatory/Data_Updated/missing_ytd_data.rds")) %>%
+  filter(Appt.Year == todays_year) 
 
 # Closed Encounters YTD
 closed_ytd_mshs <- missing_ytd_data %>%
@@ -944,6 +946,8 @@ time_to_appt_all <- scheduling_data %>%
   filter(Campus.Specialty %in% c("Internal Medicine", "Family Medicine")) %>%
   filter(Wait.Time >= 0) %>%
   mutate(Wait.Time = as.numeric(Wait.Time))
+
+
 # Time to Appointment by Visit Method and Patient Type ---------------------------------------------
 current_last_wait_mshs_all_all <- time_to_appt_all %>%
   filter(Appt.Made.Year %in% unique(past_4_wks$Appt.Year)) %>%
