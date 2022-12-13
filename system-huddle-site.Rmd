@@ -713,6 +713,17 @@ ________________________________________________________________________________
 <br/>
 
 
+```{r Open Encounters Metric Trending by Site, fig.width=12, fig.height = 5, fig.align = 'center', echo = FALSE, warning = FALSE, message = FALSE}
+site_cols <- c("#212070","#d80b8c","#00aeef","#7f7f7f","#ffc000","#7030a0","#c7c6ef","#fcc9e9","#c9f0ff","#dddedd")
+# Import in exclusion criteria
+# Exclude ECHO encounters
+missing_exc_dept <- read_excel("/nfs/data/Applications/Ambulatory/open_encounters_exclusion_dept.xlsx")
+missing_exc_resource <- read_excel("/nfs/data/Applications/Ambulatory/open_encounters_exclusion_res.xlsx")
+missing_exc_visitType <- read_excel("/nfs/data/Applications/Ambulatory/open_encounters_exclusion_visit.xlsx")
+
+```
+
+
 ## MSHS
 ### 1. MSHS Open Encounters
 ```{r MSHS Unlocked Notes Metrics, echo = FALSE, warning = FALSE, message = FALSE}
