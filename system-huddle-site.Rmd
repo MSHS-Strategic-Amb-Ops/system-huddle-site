@@ -600,6 +600,8 @@ epic_depts_site <- function(site){
     column_spec(1:2, width = "300px") %>%
     collapse_rows(1:2, valign="top")
 }
+
+invisible(gc())
 ```
 
 
