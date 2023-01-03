@@ -638,10 +638,10 @@ invisible(gc())
 # Time to Appointment
 # time_to_appt_all <- merge(past_year_data, past_4_wks[,c("Appt.Year","Appt.WeekNum")])
 # time_to_appt_all <- scheduling_data %>%
-#   # mutate(Appt.Made.DateYear = as.Date(Appt.Made.DTTM, format="%Y-%m-%d"),
-#   #       Appt.Made.MonthYear = format(as.Date(Appt.Made.DTTM, format="%m/%d/%Y"), "%Y-%m"),
-#   #       Appt.Made.Year = format(as.Date(Appt.Made.DTTM, format="%m/%d/%Y"), "%Y"),
-#   #       Appt.Made.WeekNum = as.numeric(strftime(Appt.Made.DTTM, format = "%V"))) %>%
+#   mutate(Appt.Made.DateYear = as.Date(Appt.Made.DTTM, format="%Y-%m-%d"),
+#         Appt.Made.MonthYear = format(as.Date(Appt.Made.DTTM, format="%m/%d/%Y"), "%Y-%m"),
+#         Appt.Made.Year = format(as.Date(Appt.Made.DTTM, format="%m/%d/%Y"), "%Y"),
+#         Appt.Made.WeekNum = as.numeric(strftime(Appt.Made.DTTM, format = "%V"))) %>%
 #   filter(Appt.Made.Year %in% unique(past_4_wks$Appt.Year)) %>%
 #   filter(Appt.Made.WeekNum %in% unique(past_4_wks$Appt.WeekNum)) %>%
 #   filter(Campus.Specialty %in% c("Internal Medicine", "Family Medicine")) %>%
@@ -651,6 +651,7 @@ invisible(gc())
 #   # mutate(New.PT2 = case_when(New.PT2 == "TRUE" ~ 'New'
 #   #                                  ,TRUE ~ 'Established')) %>%
 #   mutate(Wait.Time = as.numeric(Wait.Time))
+
 ```
 
 
@@ -1781,28 +1782,30 @@ current_same_vol_dept_all %>%
 
 ```{r Site Primary Care Access Function, echo = FALSE, warning = FALSE, message = FALSE}
 current_last_wait_site <- function(site){
+  
+  # site <- "MSUS"
 # Time to Appointment by Visit Method and Patient Type ---------------------------------------------
 # site <- "MSQ"
 # time_to_appt_all_site <- time_to_appt_all %>% filter(Campus == site)
   current_last_wait_site_all_all <- time_to_appt_all %>%
     filter(Campus == site) %>%
-    filter(Appt.Made.Year %in% unique(past_4_wks$Appt.Year)) %>%
+    filter(Appt.Made.Year == unique(past_4_wks$Appt.Year)) %>%
     filter(Appt.Made.WeekNum %in% unique(past_4_wks$Appt.WeekNum)) %>%
-    group_by(Appt.Year, Appt.WeekNum) %>%
-    summarise(All = median(round(Wait.Time,0))) %>%
-    arrange(Appt.WeekNum)
+    group_by(Appt.Made.Year, Appt.Made.WeekNum) %>%
+  summarise(All = round(median(Wait.Time, na.rm = TRUE),0)) %>%
+  arrange(Appt.Made.WeekNum)
 current_last_wait_site_all_ptType <- time_to_appt_all %>%
     filter(Campus == site) %>%
     filter(Appt.Made.Year %in% unique(past_4_wks$Appt.Year)) %>%
     filter(Appt.Made.WeekNum %in% unique(past_4_wks$Appt.WeekNum)) %>%
-    group_by(Appt.Year, Appt.WeekNum, New.PT2) %>%
+    group_by(Appt.Made.Year, Appt.Made.WeekNum, New.PT2) %>%
     summarise(days = median(round(Wait.Time))) %>%
-    arrange(Appt.WeekNum) %>%
+    arrange(Appt.Made.WeekNum) %>%
     pivot_wider(
       names_from = New.PT2,
       values_from = days
     )
-cols <- c("Appt.Year","Appt.WeekNum","Established","New")
+cols <- c("Appt.Made.Year","Appt.Made.WeekNum","Established","New")
 missing <- setdiff(cols, names(current_last_wait_site_all_ptType))
 current_last_wait_site_all_ptType[missing] <- NA
 current_last_wait_site_all_ptType <- current_last_wait_site_all_ptType[cols]
@@ -1814,27 +1817,31 @@ current_last_wait_site_all <- current_last_wait_site_all %>%
     values_to = "days"
   )
 current_last_wait_site_all$Visit.Method <- "Total"
+current_last_wait_site_all <- current_last_wait_site_all %>%
+  rename(Appt.Year = Appt.Made.Year,
+         Appt.WeekNum = Appt.Made.WeekNum)
+
 current_last_wait_site_inPerson_all <- time_to_appt_all %>%
     filter(Campus == site) %>%
     filter(Appt.Made.Year %in% unique(past_4_wks$Appt.Year)) %>%
     filter(Appt.Made.WeekNum %in% unique(past_4_wks$Appt.WeekNum)) %>%
   filter(Visit.Method == "IN PERSON") %>%
-  group_by(Appt.Year, Appt.WeekNum) %>%
+  group_by(Appt.Made.Year, Appt.Made.WeekNum) %>%
   summarise(All = median(round(Wait.Time))) %>%
-  arrange(Appt.WeekNum)
+  arrange(Appt.Made.WeekNum)
 current_last_wait_site_inPerson_ptType <- time_to_appt_all %>%
     filter(Campus == site) %>%
     filter(Appt.Made.Year %in% unique(past_4_wks$Appt.Year)) %>%
     filter(Appt.Made.WeekNum %in% unique(past_4_wks$Appt.WeekNum)) %>%
   filter(Visit.Method == "IN PERSON") %>%
-  group_by(Appt.Year, Appt.WeekNum, New.PT2) %>%
+  group_by(Appt.Made.Year, Appt.Made.WeekNum, New.PT2) %>%
   summarise(days = median(round(Wait.Time))) %>%
-  arrange(Appt.WeekNum) %>%
+  arrange(Appt.Made.WeekNum) %>%
     pivot_wider(
     names_from = New.PT2,
     values_from = days
   )
-cols <- c("Appt.Year","Appt.WeekNum","Established","New")
+cols <- c("Appt.Made.Year","Appt.Made.WeekNum","Established","New")
 missing <- setdiff(cols, names(current_last_wait_site_inPerson_ptType))
 current_last_wait_site_inPerson_ptType[missing] <- NA
 current_last_wait_site_inPerson_ptType <- current_last_wait_site_inPerson_ptType[cols]
@@ -1846,27 +1853,31 @@ current_last_wait_site_inPerson <- current_last_wait_site_inPerson %>%
     values_to = "days"
   )
 current_last_wait_site_inPerson$Visit.Method <- "IN PERSON"
+current_last_wait_site_inPerson <- current_last_wait_site_inPerson %>%
+  rename(Appt.Year = Appt.Made.Year,
+         Appt.WeekNum = Appt.Made.WeekNum)
+
 current_last_wait_site_tele_all <- time_to_appt_all %>%
     filter(Campus == site) %>%
     filter(Appt.Made.Year %in% unique(past_4_wks$Appt.Year)) %>%
     filter(Appt.Made.WeekNum %in% unique(past_4_wks$Appt.WeekNum)) %>%
   filter(Visit.Method == "TELEHEALTH") %>%
-  group_by(Appt.Year, Appt.WeekNum) %>%
+  group_by(Appt.Made.Year, Appt.Made.WeekNum) %>%
   summarise(All = median(round(Wait.Time))) %>%
-  arrange(Appt.WeekNum)
+  arrange(Appt.Made.WeekNum)
 current_last_wait_site_tele_ptType <- time_to_appt_all %>%
     filter(Campus == site) %>%
     filter(Appt.Made.Year %in% unique(past_4_wks$Appt.Year)) %>%
     filter(Appt.Made.WeekNum %in% unique(past_4_wks$Appt.WeekNum)) %>%
   filter(Visit.Method == "TELEHEALTH") %>%
-  group_by(Appt.Year, Appt.WeekNum, New.PT2) %>%
+  group_by(Appt.Made.Year, Appt.Made.WeekNum, New.PT2) %>%
   summarise(days = median(round(Wait.Time))) %>%
-  arrange(Appt.WeekNum) %>%
+  arrange(Appt.Made.WeekNum) %>%
     pivot_wider(
     names_from = New.PT2,
     values_from = days
   )
-cols <- c("Appt.Year","Appt.WeekNum","Established","New")
+cols <- c("Appt.Made.Year","Appt.Made.WeekNum","Established","New")
 missing <- setdiff(cols, names(current_last_wait_site_tele_ptType))
 current_last_wait_site_tele_ptType[missing] <- NA
 current_last_wait_site_tele_ptType <- current_last_wait_site_tele_ptType[cols]
@@ -1878,6 +1889,10 @@ current_last_wait_site_tele <- current_last_wait_site_tele %>%
     values_to = "days"
   )
 current_last_wait_site_tele$Visit.Method <- "TELEHEALTH"
+current_last_wait_site_tele <- current_last_wait_site_tele %>%
+  rename(Appt.Year = Appt.Made.Year,
+         Appt.WeekNum = Appt.Made.WeekNum)
+
 current_last_wait_site_combined <- bind_rows(current_last_wait_site_all, current_last_wait_site_inPerson, current_last_wait_site_tele)
 current_last_wait_site_combined <- merge(current_last_wait_site_combined, weekNum_sunday[,c("Appt.Year","Appt.WeekNum","Appt.DateYear")])
 current_last_wait_site_combined <- current_last_wait_site_combined %>%
